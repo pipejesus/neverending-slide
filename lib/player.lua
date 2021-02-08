@@ -32,6 +32,7 @@ Player = {
     name = '',  
     position = vec(100, 100),
     lives = 3,
+    points = 0,
     angle = 0,
     velocity = vec(0, 0),
     acceleration = vec(0, 0),
@@ -112,6 +113,12 @@ function Player:onCollided()
   if self.lives < 1 then
     World.gameState = 'out-of-lives'
   end  
+end
+
+function Player:onEatenFood(planktonIdx)
+  self.points = self.points + 1
+  Food.plankton[planktonIdx].status = 'eaten'
+  Food:addOne()
 end
 
 function Player:render()

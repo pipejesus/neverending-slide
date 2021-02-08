@@ -3,14 +3,15 @@ ObstaclesRing = {
   cy = 0,
   chakraRadius = 0,
   currentChakraRadius = 0,
-  obstacles = {}
+  isGrowing = true,
+  obstacles = {},  
 }
 
 function ObstaclesRing:init(init)
   self.cx = init.cx
   self.cy = init.cy
   self.chakraRadius = init.chakraRadius  
-  self.currentChakraRadius = init.chakraRadius
+  self.currentChakraRadius = init.chakraRadius  
 end
 
 function ObstaclesRing:createObstacles()
@@ -56,7 +57,20 @@ function ObstaclesRing:update(dt)
 end
 
 function ObstaclesRing:updateObstaclesRotation(dt)  
-  -- self.currentChakraRadius = (self.currentChakraRadius - (15 * dt))
+  if self.currentChakraRadius > self.chakraRadius then
+    self.isGrowing = false
+    self.currentChakraRadius = self.chakraRadius - 1
+  elseif self.currentChakraRadius < self.chakraRadius / 2 then
+    self.isGrowing = true
+    self.currentChakraRadius = self.chakraRadius / 2    
+  end
+
+  if self.isGrowing == true then
+    self.currentChakraRadius = (self.currentChakraRadius + (15 * dt))
+  else
+    self.currentChakraRadius = (self.currentChakraRadius - (15 * dt))
+  end
+  
   for index, obstacle in ipairs(self.obstacles) do    
     obstacle.angle = ( obstacle.angle + (0.25) * dt) % (math.pi * 2) 
     local obstacleCx = self.cx + math.cos(obstacle.angle) * self.currentChakraRadius

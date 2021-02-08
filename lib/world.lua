@@ -2,6 +2,7 @@ local vec = require 'vendor.brinevector-master.brinevector'
 require 'lib.HUD'
 require 'lib.obstacles-ring'
 require 'lib.player'
+require 'lib.food'
 
 World = {
   winWidth = 640,
@@ -32,6 +33,7 @@ function World:update(dt)
   ObstaclesRing:update(dt)
   World:updatePlayers(dt)
   ObstaclesRing:CheckCollisions()
+  Food:CheckCollisions()
 end
 
 function World:addPlayer(player)
@@ -58,17 +60,20 @@ function World:keypressed(key)
 end
 
 function World:draw()
-  ObstaclesRing:render()
   if self.gameState == 'running' then
+    Food:render()
+    ObstaclesRing:render()
     World:renderPlayers()
-    HUD:renderLives()
+    HUD:renderPlayerStats()
   else 
+    ObstaclesRing:render()
     HUD:renderGameEnd()
   end
 end
 
 function World:createActors()  
 
+  -- Create the swirling rings
   ObstaclesRing:init({
     cx = self.winWidthHalf,
     cy = self.winHeightHalf,
@@ -76,6 +81,11 @@ function World:createActors()
   })
   ObstaclesRing:createObstacles()
 
+  -- Create First foods
+  Food:init()
+  Food:addOne()
+
+  -- Create the Player
   local fish = Player:new(nil,"Czoko")
   World:addPlayer( fish )
 
