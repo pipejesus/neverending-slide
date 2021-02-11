@@ -6,15 +6,15 @@ local vec = require 'vendor.brinevector-master.brinevector'
 PStateDefault = {
   name = "default"
 }
-function PStateDefault:update(player, dt)  
+function PStateDefault:update(player, dt)
   local keyLeft = love.keyboard.isDown('left')
   local keyRight = love.keyboard.isDown('right')
-  local keyUp = love.keyboard.isDown('up')  
+  local keyUp = love.keyboard.isDown('up')
   if keyLeft then
     player.angle = player.angle - (5 * dt)
   elseif keyRight then
     player.angle = player.angle + (5 * dt)
-  end 
+  end
   if keyUp then
       player.currentSpeedMultiplicator = player.maxSpeedMultiplicator
       player.acceleration.x = math.sin(player.angle)
@@ -29,7 +29,7 @@ function PStateAccelerating:update(player, dt)
 end
 
 Player = {
-    name = '',  
+    name = '',
     position = vec(100, 100),
     lives = 3,
     points = 0,
@@ -110,9 +110,11 @@ function Player:onCollided()
   self.lives = self.lives - 1
   self.position.x = World.winWidthHalf
   self.position.y = World.winHeightHalf
+  self.velocity = vec(0, 0)
+  self.acceleration = vec(0, 0)
   if self.lives < 1 then
     World.gameState = 'out-of-lives'
-  end  
+  end
 end
 
 function Player:onEatenFood(planktonIdx)
@@ -136,4 +138,3 @@ function Player:render()
   -- love.graphics.print(self.acceleration.x .. " : " .. self.acceleration.y, self.position.x - self.width, self.position.y - self.height * 2)
   love.graphics.pop()
 end
-
