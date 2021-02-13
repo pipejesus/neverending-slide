@@ -1,23 +1,20 @@
-function IsBoundingBoxInRotatedAABB(boundingBox, centerX, centerY, halfW, halfH, angle)
-  local isColliding = false
-  for index, point in ipairs(boundingBox) do
-    local pointX = point[1]
-    local pointY = point[2]
-    if IsPointInRotatedAABB(pointX, pointY, centerX, centerY, halfW, halfH, angle) then
-      isColliding = true
-      break
-    end
-  end
-  return isColliding
+
+local mlib = require "vendor.mlib.mlib"
+
+function IsPlayerIntersectingSomething(playerPolygon, somethingPolygon)
+    return mlib.polygon.getPolygonIntersection(playerPolygon, somethingPolygon)  
 end
 
-function IsPointInRotatedAABB(pointX, pointY, centerX, centerY, halfW, halfH, angle)
+-- to be changed into simple utility function
+-- for interactions between simpler elements
+function IsPointInRotatedAABB(pointX, pointY, centerX, centerY, halfW, halfH, angle, playerAngle)
   local lx, ly = pointX - centerX, pointY - centerY
   lx, ly = RotatePoint(lx, ly, angle)
-
+  
   if lx < -halfW or lx > halfW then
     return false
   end
+
   if ly < -halfH or ly > halfH then
     return false
   end
@@ -26,14 +23,17 @@ function IsPointInRotatedAABB(pointX, pointY, centerX, centerY, halfW, halfH, an
 end
 
 -- Ref: strona 286 "Matematyka dla programistów Java" 
--- ROTATION MATRIX AROUND (0,0):
+-- ROTATION MATRIX AROUND (centerX, centerY):
 -- cos(a)   sin(a)    0
 -- -sin(a)  cos(a)    0
 --    0       0       1
-function RotatePoint(x, y, angle)
+function RotatePoint(x, y, angle, centerX, centerY)
+  x = x - centerX
+  y = y - centerY
   local c, s = math.cos(angle), math.sin(angle)  
-  -- return (c * x - s * y), (c*y + s *x)
-  return (c * x + s * y), (-1 * s * x) + ( y * c )
+  local newX, newY = (c * x - s * y), (c*y + s *x)
+  newX, newY = newX + centerX , newY + centerY
+  return newX, newY
 end
 
 function Map(value, start1, stop1, start2, stop2, withinBounds)

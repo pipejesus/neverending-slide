@@ -43,8 +43,7 @@ function Ring:new(init, setup)
   for k,v in pairs(setup) do init[k] = v end
   init._angleStep = (math.pi * 2) / setup.divisions
   init._currentRadius = setup.radius
-  init._obstacles = {}
-  -- print(init.radius)
+  init._obstacles = {}  
   return init
 end
 
@@ -57,10 +56,10 @@ function Ring:createObstacles()
     table.insert(self._obstacles, {
       cx = obstacleCx,
       cy = obstacleCy,
-      w = 20,
-      h = 80,
-      wHalf = 10,
-      hHalf = 40,
+      w = 40,
+      h = 20,
+      wHalf = 20,
+      hHalf = 10,
       angle = currentAngle,
       colliding = false,
     })
@@ -68,8 +67,7 @@ function Ring:createObstacles()
   end
 end
 
-function Ring:Update(dt)
-  -- print(self.radius)
+function Ring:Update(dt)  
   if self.movement == "growing-shrinking" then
     self:UpdateObstaclesGrowingShrinking(dt)
   end
@@ -103,6 +101,23 @@ function Ring:UpdateObstaclesRotation(dt)
   end
 end
 
+function Ring:getObstaclePolygon(obstacle)
+  local x1, y1, x2, y2, x3, y3, x4, y4
+  x1 = obstacle.cx - obstacle.wHalf
+  y1 = obstacle.cy - obstacle.hHalf
+  x2 = x1 + obstacle.w
+  y2 = y1
+  x3 = x1 + obstacle.w
+  y3 = y1 + obstacle.h
+  x4 = x1
+  y4 = y1+ obstacle.h
+  x1, y1 = RotatePoint(x1, y1, obstacle.angle, obstacle.cx, obstacle.cy)
+  x2, y2 = RotatePoint(x2, y2, obstacle.angle, obstacle.cx, obstacle.cy)
+  x3, y3 = RotatePoint(x3, y3, obstacle.angle, obstacle.cx, obstacle.cy)
+  x4, y4 = RotatePoint(x4, y4, obstacle.angle, obstacle.cx, obstacle.cy)
+  return {x1, y1, x2, y2, x3, y3, x4, y4}
+end
+
 function Ring:Render()
   if self._obstacles == nil then
     return
@@ -120,24 +135,27 @@ function Ring:Render()
     love.graphics.translate(-obstacle.cx, -obstacle.cy)
     love.graphics.rectangle('fill', obstacle.cx - obstacle.wHalf, obstacle.cy - obstacle.hHalf, obstacle.w, obstacle.h)
     love.graphics.pop()
-    love.graphics.setColor( 1, 1, 0, 1 )
+    
   end
 end
 
 function Ring:CheckCollisions()
-  local foundColliding = false
+  
   if self._obstacles == nil then
     return
   end
 
   for index, obstacle in ipairs(self._obstacles) do
-    if IsBoundingBoxInRotatedAABB(World.players[1]:getBoundingBox(), obstacle.cx, obstacle.cy, obstacle.wHalf, obstacle.hHalf, obstacle.angle) then
-      obstacle.colliding = true
-      foundColliding = true
-      World.players[1]:onCollided()
-    else
-      obstacle.colliding = false
+    for indexPlayerx, player in ipairs(World.players) do
+      local playerPolygon = player:getPolygonRotated()
+      local obstaclePolygon = self:getObstaclePolygon(obstacle)
+      if IsPlayerIntersectingSomething(playerPolygon, obstaclePolygon) then      
+        obstacle.colliding = true 
+        player:onCollided()
+      else
+        obstacle.colliding = false
+      end        
     end
   end
-  World.colliding = foundColliding
+  
 end

@@ -1,0 +1,3 @@
+WStateStartScreen = {
+  name = "start-screen"
+}

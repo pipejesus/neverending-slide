@@ -1,0 +1,3 @@
+WStateGameover = {
+  name = "gameover"
+}

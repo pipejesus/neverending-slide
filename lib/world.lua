@@ -9,8 +9,7 @@ World = {
   winWidth = 640,
   winHeight = 480,
   winWidthHalf = 0,
-  winHeightHalf = 0,
-  colliding = false,
+  winHeightHalf = 0,  
   diamonds = {},
   gameState = 'running',
   players = {},
@@ -32,8 +31,8 @@ end
 
 function World:update(dt)
   love.keyboard.keysPressed = {}
-  World:updateEnemies(dt) -- ObstaclesRing:update(dt)
   World:updatePlayers(dt)
+  World:updateEnemies(dt) -- ObstaclesRing:update(dt)
   World:checkEnemiesCollisions() -- ObstaclesRing:CheckCollisions()
   Food:CheckCollisions()
 end
@@ -87,8 +86,8 @@ end
 function World:draw()
   if self.gameState == 'running' then
     Food:render()
-    World:renderEnemies() -- ObstaclesRing:render()
     World:renderPlayers()
+    World:renderEnemies() -- ObstaclesRing:render()
     HUD:renderPlayerStats()
   else
     World:renderEnemies()
@@ -105,15 +104,15 @@ function World:createActors()
     cy = self.winHeightHalf,
     divisions = 6,
     behaviour = "rotating",
-    movement = "normal",
+    movement = "growing-shrinking",
     radius = 200,
-    minRadius = 100,
-    maxRadius = 200,
+    minRadius = 180,
+    maxRadius = 220,
     isGrowing = true,
-    shrinkingSpeed = 20,
-    growingSpeed = 45,
+    shrinkingSpeed = 25,
+    growingSpeed = 35,
     rotationDirection = 1,
-    rotationSpeed = 0.25,
+    rotationSpeed = 0.35,
   })
   ring1:createObstacles()
 
@@ -121,7 +120,7 @@ function World:createActors()
     name = "Ring 2",
     cx = self.winWidthHalf,
     cy = self.winHeightHalf,
-    divisions = 4,
+    divisions = 7,
     behaviour = "rotating",
     movement = "normal",
     radius = 100,
@@ -131,32 +130,38 @@ function World:createActors()
     shrinkingSpeed = 20,
     growingSpeed = 45,
     rotationDirection = -1,
-    rotationSpeed = 0.65,
+    rotationSpeed = 0.15,
   })
   ring2:createObstacles()
 
-
   World:addEnemy(ring1)
   World:addEnemy(ring2)
-
-  print(ring1.name)
-  print(ring2.name)
-
-  -- World:addEnemy()
-
-  -- ObstaclesRing:init({
-  --   cx = self.winWidthHalf,
-  --   cy = self.winHeightHalf,
-  --   chakraRadius = self.winHeightHalf * 5 / 6
-  -- })
-  -- ObstaclesRing:createObstacles()
 
   -- Create First foods
   Food:init()
   Food:addOne()
 
   -- Create the Player
-  local fish = Player:new(nil, "Czoko")
+  local fish = Player:new({
+    name = 'Fish1',
+    position = vec(90, 90),
+    controlTurnLeft = 'left',
+    controlTurnRight = 'right',
+    controlAccelerate = 'up'       
+  })  
   World:addPlayer( fish )
+
+  local fish2 = Player:new({ 
+      name = 'Fish2',
+      position = vec(self.winWidthHalf, self.winHeightHalf),
+      controlTurnLeft = 'a',
+      controlTurnRight = 'd',
+      controlAccelerate = 'w'      
+  })  
+  World:addPlayer( fish2 )
+  
+  
+  -- print(World.players[1].controlAccelerate)
+  -- print(World.players[2].controlAccelerate)
 
 end

@@ -32,6 +32,19 @@ function Food:addOne()
   })  
 end
 
+function Food:getFoodPolygon(plankton)
+  local x1, y1, x2, y2, x3, y3, x4, y4
+  x1 = plankton.cx - self.planktonHalfW
+  y1 = plankton.cy - self.planktonHalfH
+  x2 = x1 + self.planktonW
+  y2 = y1
+  x3 = x1 + self.planktonW
+  y3 = y1 + self.planktonH
+  x4 = x1
+  y4 = y1 + self.planktonH
+  return {x1, y1, x2, y2, x3, y3, x4, y4}
+end
+
 function Food:removeOne(plankIdx)
   self.plankton[plankIdx].status = 'eaten'
 end
@@ -39,9 +52,11 @@ end
 function Food:CheckCollisions()  
   for index, plankton in ipairs(self.plankton) do  
     if plankton.status ~= 'eaten' then
-      if IsBoundingBoxInRotatedAABB(World.players[1]:getBoundingBox(), plankton.cx, plankton.cy, Food.planktonHalfW, Food.planktonHalfH, 0) then      
-        World.players[1]:onEatenFood(index)
+      for indexPlayer, player in ipairs(World.players) do        
+        if IsPlayerIntersectingSomething(player:getPolygonRotated(), self:getFoodPolygon(plankton)) then        
+          player:onEatenFood(index)
+        end
       end
     end
-  end  
+  end
 end

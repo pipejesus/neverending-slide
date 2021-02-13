@@ -1,59 +1,30 @@
 local vec = require 'vendor.brinevector-master.brinevector'
-
--- Standing state
--- Possible input: left, right - change angle
--- Possible input: up - accelerate
-PStateDefault = {
-  name = "default"
-}
-function PStateDefault:update(player, dt)
-  local keyLeft = love.keyboard.isDown('left')
-  local keyRight = love.keyboard.isDown('right')
-  local keyUp = love.keyboard.isDown('up')
-  if keyLeft then
-    player.angle = player.angle - (5 * dt)
-  elseif keyRight then
-    player.angle = player.angle + (5 * dt)
-  end
-  if keyUp then
-      player.currentSpeedMultiplicator = player.maxSpeedMultiplicator
-      player.acceleration.x = math.sin(player.angle)
-      player.acceleration.y = - math.cos(player.angle) -- minus because we need to invert the Y axis
-  end
-end
-
-PStateAccelerating = {
-  name = "accelerating"
-}
-function PStateAccelerating:update(player, dt)
-end
-
+require 'lib.player-states.player-state-default'
 Player = {
     name = '',
-    position = vec(100, 100),
-    lives = 3,
-    points = 0,
-    angle = 0,
+    state = PStateDefault,
     velocity = vec(0, 0),
     acceleration = vec(0, 0),
+    position = vec(100, 100),
+    lives = 5,
+    points = 0,
+    angle = 0,
     maxSpeedMultiplicator = 100, -- initial Speed multiplicator when starting to accelerate, decreasing on each frame if key not pressed
     currentSpeedMultiplicator = 100,
     speedDamping = 0.994, -- value by which the speedmultiplicator will be multiplied to make the fishy stop eventually
-    width = 14,
-    height = 14,
-    halfW = 7 ,
-    halfH = 7,
-    state = PStateDefault
+    initialWidth = 14,
+    initialHeight = 14,
 }
 
-function Player:new(init, name)
+function Player:new(init)
   init = init or {}
   setmetatable(init, self)
   self.__index = self
-  self.name = name or 'Fish'
-  self.model = {
-    0, 0, self.halfW, -self.halfH, self.width, 0
-  }
+  self.width = self.initialWidth
+  self.height = self.initialHeight
+  self.halfW = self.initialWidth / 2
+  self.halfH = self.initialHeight /2
+
   return init
 end
 
@@ -79,23 +50,30 @@ function Player:getBoundingBox()
   }
 end
 
-
-function Player:calculateVerticesFromPosition()
-  self.vertices = {
-    self.model[1] + self.position.x, self.model[2] + self.position.y,
-    self.model[3] + self.position.x, self.model[4] + self.position.y,
-    self.model[5] + self.position.x, self.model[6] + self.position.y
-  }
+function Player:getPolygonRotated()
+  local x1, y1, x2, y2, x3, y3, x4, y4
+  x1 = self.position.x - self.halfW
+  y1 = self.position.y - self.halfH
+  x2 = x1 + self.width
+  y2 = y1
+  x3 = x1 + self.width
+  y3 = y1 + self.height
+  x4 = x1
+  y4 = y1+ self.height
+  x1, y1 = RotatePoint(x1, y1, self.angle, self.position.x, self.position.y)
+  x2, y2 = RotatePoint(x2, y2, self.angle, self.position.x, self.position.y)
+  x3, y3 = RotatePoint(x3, y3, self.angle, self.position.x, self.position.y)
+  x4, y4 = RotatePoint(x4, y4, self.angle, self.position.x, self.position.y)
+  return {x1, y1, x2, y2, x3, y3, x4, y4}
 end
 
 function Player:update(dt)
   self.state:update(self, dt)
-  self:reCalculatePosition(dt)
-  -- self:calculateVerticesFromPosition()
+  self:reCalculatePosition(dt)  
 end
 
 function Player:reCalculatePosition(dt)
-  local speed = vec(self.acceleration.x, self.acceleration.y)
+  local speed = self.acceleration
   if self.currentSpeedMultiplicator > 0 then
     self.currentSpeedMultiplicator = self.currentSpeedMultiplicator - (self.maxSpeedMultiplicator - self.maxSpeedMultiplicator * self.speedDamping)
   end
@@ -108,17 +86,34 @@ end
 
 function Player:onCollided()
   self.lives = self.lives - 1
+  self.points = 0
   self.position.x = World.winWidthHalf
   self.position.y = World.winHeightHalf
   self.velocity = vec(0, 0)
   self.acceleration = vec(0, 0)
+  self:resetSize()
   if self.lives < 1 then
     World.gameState = 'out-of-lives'
   end
 end
 
+function Player:enlarge()
+  self.width = self.width + 2
+  self.height = self.height + 2
+  self.halfW = self.width / 2
+  self.halfH = self.height / 2
+end
+
+function Player:resetSize()
+  self.width = self.initialWidth
+  self.height = self.initialHeight
+  self.halfW = self.width / 2
+  self.halfH = self.height / 2
+end
+
 function Player:onEatenFood(planktonIdx)
   self.points = self.points + 1
+  self:enlarge()
   Food.plankton[planktonIdx].status = 'eaten'
   Food:addOne()
 end
@@ -135,6 +130,5 @@ function Player:render()
     self.position.x - self.halfW + 4, self.position.y - self.halfH + 3,
     self.position.x + self.halfW - 4, self.position.y - self.halfH + 3
   )
-  -- love.graphics.print(self.acceleration.x .. " : " .. self.acceleration.y, self.position.x - self.width, self.position.y - self.height * 2)
   love.graphics.pop()
 end
