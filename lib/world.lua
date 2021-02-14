@@ -100,19 +100,21 @@ function World:createActors()
   -- Create the swirling rings
   local ring1 = Ring:new(nil, {
     name = "Ring 1",
-    cx = self.winWidthHalf,
-    cy = self.winHeightHalf,
-    divisions = 6,
+    cx = self.winWidth,
+    cy = self.winHeight,
+    divisions = 8,
     behaviour = "rotating",
-    movement = "growing-shrinking",
+    movement = "normal",
     radius = 200,
     minRadius = 180,
-    maxRadius = 220,
+    maxRadius = 200,
     isGrowing = true,
-    shrinkingSpeed = 25,
-    growingSpeed = 35,
+    shrinkingSpeed = 10,
+    growingSpeed = 15,
     rotationDirection = 1,
     rotationSpeed = 0.35,
+    obstacleW = 30,
+    obstacleH = 80,
   })
   ring1:createObstacles()
 
@@ -123,7 +125,7 @@ function World:createActors()
     divisions = 7,
     behaviour = "rotating",
     movement = "normal",
-    radius = 100,
+    radius = 120,
     minRadius = 50,
     maxRadius = 100,
     isGrowing = true,
@@ -131,11 +133,34 @@ function World:createActors()
     growingSpeed = 45,
     rotationDirection = -1,
     rotationSpeed = 0.15,
+    obstacleW = 24,
+    obstacleH = 40
   })
   ring2:createObstacles()
 
+  local ring3 = Ring:new(nil, {
+    name = "Ring top left",
+    cx = 0,
+    cy = 0,
+    divisions = 8,
+    behaviour = "rotating",
+    movement = "normal",
+    radius = 200,
+    minRadius = 190,
+    maxRadius = 220,
+    isGrowing = true,
+    shrinkingSpeed = 25,
+    growingSpeed = 30,
+    rotationDirection = 1,
+    rotationSpeed = 0.35,
+    obstacleW = 30,
+    obstacleH = 80,
+  })
+  ring3:createObstacles()  
+
   World:addEnemy(ring1)
   World:addEnemy(ring2)
+  World:addEnemy(ring3)
 
   -- Create First foods
   Food:init()
@@ -144,7 +169,7 @@ function World:createActors()
   -- Create the Player
   local fish = Player:new({
     name = 'Fish1',
-    position = vec(90, 90),
+    position = vec(75, 75),
     controlTurnLeft = 'left',
     controlTurnRight = 'right',
     controlAccelerate = 'up'       

@@ -28,13 +28,29 @@ Ring = {
   growingSpeed = 15,
   rotationDirection = 1,
   rotationSpeed = 0.25,
-
+  obstacleW = 0,
+  obstacleH = 0,
   _currentRadius = 1,
   _angleStep = 1,  
   _obstacles = {},
 }
 
 local PI_2 = math.pi * 2
+
+RingObstacle = {
+  wHalf = 0,
+  hHalf = 0,
+  colliding = false
+}
+
+function RingObstacle:new(init)
+  init = init or {}
+  setmetatable(init, self)
+  self.__index = self
+  init.wHalf = init.w / 2
+  init.hHalf = init.h / 2
+  return init
+end
 
 function Ring:new(init, setup)
   init = init or {}
@@ -47,22 +63,18 @@ function Ring:new(init, setup)
   return init
 end
 
-function Ring:createObstacles()
-  print(self._obstacles)
+function Ring:createObstacles()  
   local currentAngle = math.rad(0)
   for i = 1, self.divisions do
     local obstacleCx = self.cx + math.cos(currentAngle) * self.radius
-    local obstacleCy = self.cy + math.sin(currentAngle) * self.radius
-    table.insert(self._obstacles, {
+    local obstacleCy = self.cy + math.sin(currentAngle) * self.radius          
+    table.insert(self._obstacles, RingObstacle:new({
       cx = obstacleCx,
       cy = obstacleCy,
-      w = 40,
-      h = 20,
-      wHalf = 20,
-      hHalf = 10,
-      angle = currentAngle,
-      colliding = false,
-    })
+      w = self.obstacleW,
+      h = self.obstacleH,
+      angle = currentAngle
+    }))
     currentAngle = currentAngle + self._angleStep
   end
 end
