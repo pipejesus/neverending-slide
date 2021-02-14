@@ -115,6 +115,7 @@ function World:createActors()
     rotationSpeed = 0.35,
     obstacleW = 30,
     obstacleH = 80,
+    obstacleShade = HSV(160, 145, 0.2)
   })
   ring1:createObstacles()
 
@@ -134,7 +135,8 @@ function World:createActors()
     rotationDirection = -1,
     rotationSpeed = 0.15,
     obstacleW = 24,
-    obstacleH = 40
+    obstacleH = 40,
+    obstacleShade = HSV(155, 145, 0.2)
   })
   ring2:createObstacles()
 
@@ -155,7 +157,9 @@ function World:createActors()
     rotationSpeed = 0.35,
     obstacleW = 30,
     obstacleH = 80,
+    obstacleShade = HSV(150, 145, 0.2)
   })
+  
   ring3:createObstacles()  
 
   World:addEnemy(ring1)

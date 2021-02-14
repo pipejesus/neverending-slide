@@ -30,6 +30,7 @@ Ring = {
   rotationSpeed = 0.25,
   obstacleW = 0,
   obstacleH = 0,
+  obstacleShade = HSV(20, 20, 100),
   _currentRadius = 1,
   _angleStep = 1,  
   _obstacles = {},
@@ -40,7 +41,10 @@ local PI_2 = math.pi * 2
 RingObstacle = {
   wHalf = 0,
   hHalf = 0,
-  colliding = false
+  colliding = false,
+  colorR = 0,
+  colorG = 0,
+  colorB = 0
 }
 
 function RingObstacle:new(init)
@@ -67,13 +71,18 @@ function Ring:createObstacles()
   local currentAngle = math.rad(0)
   for i = 1, self.divisions do
     local obstacleCx = self.cx + math.cos(currentAngle) * self.radius
-    local obstacleCy = self.cy + math.sin(currentAngle) * self.radius          
+    local obstacleCy = self.cy + math.sin(currentAngle) * self.radius    
+    -- table.unpack(self.obstacleShade)
+    
     table.insert(self._obstacles, RingObstacle:new({
       cx = obstacleCx,
       cy = obstacleCy,
       w = self.obstacleW,
       h = self.obstacleH,
-      angle = currentAngle
+      angle = currentAngle,
+      colorR = self.obstacleShade.r,
+      colorG = self.obstacleShade.g,
+      colorB = self.obstacleShade.b
     }))
     currentAngle = currentAngle + self._angleStep
   end
@@ -136,11 +145,12 @@ function Ring:Render()
   end
 
   for index, obstacle in ipairs(self._obstacles) do
-    if obstacle.colliding == true then
-      love.graphics.setColor( 0.5, 0.3, 0.3, 1)
-    else
-      love.graphics.setColor( 0.3, 0.3, 0.3, 1)
-    end
+    -- if obstacle.colliding == true then
+    --   love.graphics.setColor( 0.5, 0.3, 0.3, 1)
+    -- else
+    --   love.graphics.setColor( 0.3, 0.3, 0.3, 1)
+    -- end
+    love.graphics.setColor(obstacle.colorR,obstacle.colorG,obstacle.colorB, 1)
     love.graphics.push('all')
     love.graphics.translate(obstacle.cx, obstacle.cy)
     love.graphics.rotate( - math.atan2( obstacle.cy - self.cy, self.cx - obstacle.cx) )

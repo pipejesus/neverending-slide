@@ -55,5 +55,5 @@ function HSV(h, s, v)
   elseif h < 4 then r,g,b = 0,x,c
   elseif h < 5 then r,g,b = x,0,c
   else              r,g,b = c,0,x
-  end return (r+m)*255,(g+m)*255,(b+m)*255
+  end return {r = (r+m)*255, g = (g+m)*255, b = (b+m)*255}
 end
