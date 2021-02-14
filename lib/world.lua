@@ -6,8 +6,8 @@ require 'lib.player'
 require 'lib.food'
 
 World = {
-  winWidth = 640,
-  winHeight = 480,
+  winWidth = 1024,
+  winHeight = 768,
   winWidthHalf = 0,
   winHeightHalf = 0,  
   diamonds = {},
@@ -52,8 +52,7 @@ function World:checkEnemiesCollisions()
 end
 
 function World:updateEnemies(dt)
-  for index, enemy in ipairs(self.enemies) do
-    -- print(enemy.name)
+  for index, enemy in ipairs(self.enemies) do    
     enemy:Update(dt)
   end
 end
@@ -187,10 +186,6 @@ function World:createActors()
       controlTurnRight = 'd',
       controlAccelerate = 'w'      
   })  
-  World:addPlayer( fish2 )
-  
-  
-  -- print(World.players[1].controlAccelerate)
-  -- print(World.players[2].controlAccelerate)
+  -- World:addPlayer( fish2 )  
 
 end

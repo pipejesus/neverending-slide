@@ -3,6 +3,7 @@ local mlib = require "vendor.mlib.mlib"
 
 function IsPlayerIntersectingSomething(playerPolygon, somethingPolygon)
     return mlib.polygon.getPolygonIntersection(playerPolygon, somethingPolygon)  
+    -- return false
 end
 
 -- to be changed into simple utility function

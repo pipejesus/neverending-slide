@@ -1,3 +1,4 @@
+local mlib = require "vendor.mlib.mlib"
 RingStateDefault = {
   name="default"
 }
@@ -40,8 +41,7 @@ local PI_2 = math.pi * 2
 
 RingObstacle = {
   wHalf = 0,
-  hHalf = 0,
-  colliding = false,
+  hHalf = 0,  
   colorR = 0,
   colorG = 0,
   colorB = 0
@@ -53,8 +53,35 @@ function RingObstacle:new(init)
   self.__index = self
   init.wHalf = init.w / 2
   init.hHalf = init.h / 2
+  init.state = RingObstacleStateDefault
   return init
 end
+
+RingObstacleStateDefault = {
+  name = "default",
+  render = function(obstacle, host)
+    love.graphics.setColor(obstacle.colorR,obstacle.colorG,obstacle.colorB, 1)
+    love.graphics.push('all')
+    love.graphics.translate(obstacle.cx, obstacle.cy)
+    love.graphics.rotate( - math.atan2( obstacle.cy - host.cy, host.cx - obstacle.cx) )
+    love.graphics.translate(-obstacle.cx, -obstacle.cy)
+    love.graphics.rectangle('fill', obstacle.cx - obstacle.wHalf, obstacle.cy - obstacle.hHalf, obstacle.w, obstacle.h)
+    love.graphics.pop()  
+  end
+}
+
+RingObstacleStateArmed = {
+  name = "armed",
+  render = function(obstacle, host)
+    love.graphics.setColor(obstacle.colorR + 30,obstacle.colorG,obstacle.colorB, 1)
+    love.graphics.push('all')
+    love.graphics.translate(obstacle.cx, obstacle.cy)
+    love.graphics.rotate( - math.atan2( obstacle.cy - host.cy, host.cx - obstacle.cx) )
+    love.graphics.translate(-obstacle.cx, -obstacle.cy)
+    love.graphics.rectangle('fill', obstacle.cx - obstacle.wHalf, obstacle.cy - obstacle.hHalf, obstacle.w, obstacle.h)
+    love.graphics.pop()      
+  end
+}
 
 function Ring:new(init, setup)
   init = init or {}
@@ -94,7 +121,7 @@ function Ring:Update(dt)
   end
   if self.behaviour == "rotating" then
     self:UpdateObstaclesRotation(dt)
-  end
+  end  
 end
 
 function Ring:UpdateObstaclesGrowingShrinking(dt)
@@ -143,22 +170,37 @@ function Ring:Render()
   if self._obstacles == nil then
     return
   end
-
   for index, obstacle in ipairs(self._obstacles) do
-    -- if obstacle.colliding == true then
-    --   love.graphics.setColor( 0.5, 0.3, 0.3, 1)
-    -- else
-    --   love.graphics.setColor( 0.3, 0.3, 0.3, 1)
-    -- end
-    love.graphics.setColor(obstacle.colorR,obstacle.colorG,obstacle.colorB, 1)
-    love.graphics.push('all')
-    love.graphics.translate(obstacle.cx, obstacle.cy)
-    love.graphics.rotate( - math.atan2( obstacle.cy - self.cy, self.cx - obstacle.cx) )
-    love.graphics.translate(-obstacle.cx, -obstacle.cy)
-    love.graphics.rectangle('fill', obstacle.cx - obstacle.wHalf, obstacle.cy - obstacle.hHalf, obstacle.w, obstacle.h)
-    love.graphics.pop()
-    
+    obstacle.state.render(obstacle, self)
   end
+end
+
+-- DUMMY FOR NOW, NEEDS MORE AGGRESIVE CALCULATION
+-- BUT WE MIGHT KEEP IT SIMPLE BECAUSE IT WOULD MEAN REALLY LOTS OF CALCULATIONS
+function Ring:CheckAndUpdateObstacleState(obstacle, playersPositions)
+  -- local dx = obstacle.cx - playerPosition.x
+  -- local dy = obstacle.cy - playerPosition.y
+  -- local dist =  (dx * dx + dy * dy)
+
+  local anyNear = false
+  for index, playerPosition in ipairs(playersPositions) do
+    local dist = mlib.line.getLength(obstacle.cx, obstacle.cy, playerPosition.x, playerPosition.y)  
+    if dist < 100 then
+      anyNear = true
+      break
+    end
+  end
+
+  if anyNear == true then
+    if obstacle.state.name ~= 'armed' then
+      obstacle.state = RingObstacleStateArmed
+    end
+  else
+    if obstacle.state.name ~= 'default' then
+      obstacle.state = RingObstacleStateDefault
+    end
+  end
+
 end
 
 function Ring:CheckCollisions()
@@ -168,16 +210,18 @@ function Ring:CheckCollisions()
   end
 
   for index, obstacle in ipairs(self._obstacles) do
+    local playersPositions = {}
     for indexPlayerx, player in ipairs(World.players) do
       local playerPolygon = player:getPolygonRotated()
-      local obstaclePolygon = self:getObstaclePolygon(obstacle)
-      if IsPlayerIntersectingSomething(playerPolygon, obstaclePolygon) then      
-        obstacle.colliding = true 
+      local obstaclePolygon = self:getObstaclePolygon(obstacle)      
+      if IsPlayerIntersectingSomething(playerPolygon, obstaclePolygon) then        
         player:onCollided()
-      else
-        obstacle.colliding = false
-      end        
+      end
+      table.insert(playersPositions, player.position)      
     end
+    
+    self:CheckAndUpdateObstacleState(obstacle, playersPositions)
+
   end
   
 end
